@@ -1,4 +1,3 @@
-
 getwd()
 mmx <- read.csv("mmx.csv")
 summary(mmx)
@@ -15,6 +14,11 @@ p1+geom_point()
 #Sales Vs. Tv
 p2<-ggplot(mmx,aes(x=NewVolSales,y=TV))
 p2+geom_point()
+
+boxplot(mmx$Base.Price)
+boxplot(mmx$Radio)
+boxplot(mmx$TV_adstock)
+
 
 #Sales vs. Instore 
 #Instore: % of total stores participating in In Store promotional activites each week 
@@ -42,7 +46,7 @@ mmx$online_adstock <- stats::filter(mmx$online,filter=0.3,method="recursive")
 summary(mmx)
 
 #Sampling data
-set.seed(100)
+set.seed(123)
 sampling<-sort(sample(nrow(mmx), nrow(mmx)*.7)) 
 length(sampling)
 
@@ -51,7 +55,6 @@ train<-mmx[sampling,]
 test<-mmx[-sampling,]
 
 # Linear Regression
-
 
 library(MASS)
 reg<- lm (NewVolSales ~ Base.Price + InStore + StockOut. + Discount + TV_adstock + 
@@ -67,24 +70,27 @@ summary(reg1)
 ##Plotting Residuals vs Predicted Values
 ##Checking Heteroskedastcity
 
-pred_train <- predict(step)
-Res_train <- resid(step)
+pred_train <- predict(reg1)
+Res_train <- resid(reg1)
 
 plot(pred_train,Res_train,abline(0,0))
 plot(train$NewVolSales,Res_train,abline(0,0))
-#Since in both cases there is no pattern,model fits well
+#Since in both cases there is no pattern, assumptions are satisfied
 
 ##Checking Multi-Collinearity
 library(car)
-vif(step)
+vif(reg1)
 
 ##Plotting actual vs predicted values
 plot(train$NewVolSales,col="blue",type="l")
 lines(pred_train,col="red",type="l")
 
 
+par(mfrow=c(2,2)) # partition the graphics device
+plot(reg1)
+
 # Test dataset
-pred <- predict(reg,data=test)
+pred <- predict(reg1,data=test)
 
 ##Plotting actual vs predicted values
 plot(test$NewVolSales,col="blue",type="l")
